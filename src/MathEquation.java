@@ -61,7 +61,23 @@ public class MathEquation {
     }
 
 
-    public static double giveAverageResults(){
+    public void setRightValue(double rightValue) {
+        this.rightValue = rightValue;
+    }
+
+    public void setOperator(char operator) {
+        this.operator = operator;
+    }
+
+    public double getResult() {
+        return result;
+    }
+
+    public void setResult(double result) {
+        this.result = result;
+    }
+
+    public static double getAverageResult(){
         return sumOfAllResults/numberOfCalculations;
     }
 }
