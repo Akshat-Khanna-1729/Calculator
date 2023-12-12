@@ -7,6 +7,9 @@ public class Divider extends CalculateBase implements MathProcess{
 
     @Override
     public void calculate(){
+        if(getRightValue() == 0) {
+            throw new IllegalArgumentException("Zero rightVal not permitted with divide operation");
+        }
         double result = getRightValue()!=0?(getLeftValue() / getRightValue()):0.0d;
         setResult(result);
     };

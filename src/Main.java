@@ -1,34 +1,36 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Scanner;
 
-// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
-// then press Enter. You can now see whitespace characters in your code.
 public class Main {
     public static void main(String[] args) {
-//        double[] leftValues = {99.0d, 101.0d, 2.0d, 298.0d};
-//        double[] rightValues = {121.0d, 32.0d, 40.0d, 42.0d};
-//        char[] operators = {'a', 's', 'm', 'd'};
-//        double[] results = new double[operators.length];
-//        MathEquation[] equations = new MathEquation[4];
-//        for (int i = 0; i < 4; i++) {
-//            equations[i] = new MathEquation(operators[i], leftValues[i], rightValues[i]);
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
+            processFile(reader);
+        }
+//        catch(IOException ex) {
+//            System.out.println("Error reading file - " + ex.getMessage());
 //        }
-//        if(args.length == 0){
-//            for(MathEquation equation:equations){
-//                System.out.println("Solution for the equation is "+ equation.execute());
-//            }
-//        } else if(args[0].charAt(0) == 'w'){
-//            giveDateAndTime();
-//        }
-//        else if (args.length == 3) {
-//            performOperation(args);
-//        }
-//        else{
-//            System.out.println("Enter 2 values and a valid operator");
-//        }
-        performMoreCalculations();
-//        executeInteractively();
-        dynamicInteractivity();
+        catch(Exception ex) {
+            System.out.println("Error processing file - " + ex.getMessage());
+        }
+//        dynamicInteractivity();
+    }
+
+    private static void processFile(BufferedReader reader) throws IOException {
+        String inputLine = null;
+        while((inputLine = reader.readLine()) != null)
+            try {
+                System.out.println(inputLine);
+                performOperation(inputLine);
+            } catch(InvalidStatementException ex) {
+                System.out.println(ex.getMessage() + " - " + inputLine);
+                writeInvalidStatementExceptionToLog(ex, inputLine);
+
+            }
     }
 
     private static void dynamicInteractivity() {
@@ -46,22 +48,24 @@ public class Main {
 
     }
 
-    static void executeInteractively() {
-        System.out.println("Enter an operation and two numbers:");
-        Scanner scanner = new Scanner(System.in);
-        String userInput = scanner.nextLine();
-        String[] parts = userInput.split(" ");
-        performOperation(parts);
-    }
 
-    private static void performOperation(String[] parts) {
-        MathOperation operation = MathOperation.valueOf(parts[0].toUpperCase());
-        double leftVal = Double.parseDouble(parts[1]);
-        double rightVal = Double.parseDouble(parts[2]);
-        CalculateBase calculation = createCalculation(operation, leftVal, rightVal);
-        calculation.calculate();
-        System.out.println("Operation performed: " + operation);
-        System.out.println(calculation.getResult());
+    private static void performOperation(String input) throws InvalidStatementException {
+        try{
+            String[] parts = input.split(" ");
+            if(parts.length != 3) throw new InvalidStatementException("Statement must have 3 parts: operator, left value, right value");
+            MathOperation operation = MathOperation.valueOf(parts[0].toUpperCase());
+            double leftVal = valueFromWord(parts[1]);
+            double rightVal = valueFromWord(parts[2]);
+
+            CalculateBase calculation = createCalculation(operation, leftVal, rightVal);
+            calculation.calculate();
+            System.out.println("Operation performed: " + operation);
+            System.out.println(calculation.getResult());
+        } catch (InvalidStatementException ex){
+            throw ex;
+        } catch (Exception ex) {
+            throw new InvalidStatementException("Error:- ", ex);
+        }
     }
 
     private static CalculateBase createCalculation(MathOperation operation, double leftVal, double rightVal) {
@@ -93,6 +97,35 @@ public class Main {
         }
     }
 
+    static int valueFromWord(String word) {
+        String[] numberWords = {
+                "zero", "one", "two", "three", "four",
+                "five", "six", "seven", "eight", "nine"
+        };
+        int value = -1;
+        for(int index = 0; index < numberWords.length; index++) {
+            if(word.equals(numberWords[index])) {
+                value = index;
+                break;
+            }
+        }
+        if(value == -1d)
+            value = Integer.parseInt(word);
+
+        return value;
+    }
+
+    static void writeInvalidStatementExceptionToLog(InvalidStatementException ex, String inputLine) {
+        System.err.println("");
+        System.err.println("*********************************");
+        System.err.println("Information written to log system");
+        System.err.println("*********************************");
+
+        System.err.println(ex.getMessage() + " - " + inputLine);
+        if(ex.getCause() != null)
+            System.err.println("  caused by " + ex.getCause());
+        ex.printStackTrace(System.err);
+    }
     static void doCalculation(CalculateBase calculation, double leftVal, double rightVal) {
         calculation.setLeftValue(leftVal);
         calculation.setRightValue(rightVal);
